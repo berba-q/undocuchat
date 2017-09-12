@@ -3,3 +3,6 @@
 Setup :
 Pull this repo from glitch: https://glitch.com 
 Edit the .env file with your own tokens and keys
+
+
+![](https://i.imgur.com/TmQZmbr.gif)
