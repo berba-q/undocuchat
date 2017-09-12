@@ -42,7 +42,7 @@ module.exports = function(controller) {
   //console.log(key);
               
             }
-          console.log("text: " + message.user);
+         // console.log("text: " + message.user);
           var input = message.intents[0]._text;
      
      
@@ -62,7 +62,7 @@ bot.reply(message,"Hello! Please tell me where you are, and what your medical co
   //console.log(key);
             if(key == "Conditions" && message.intents[0].entities.Conditions[0].confidence > .7){
                       condition= true;         
-                              console.log("ent:" + message.intents[0].entities.Conditions[0].value);
+                           //   console.log("ent:" + message.intents[0].entities.Conditions[0].value);
               firebase.database().ref('users/' + message.user).update({
     condition: message.intents[0].entities.Conditions[0].value
     });
@@ -97,65 +97,131 @@ userRef.once('value', function(snapshotGrand) {
     if (snapshotGrand.hasChild("condition")){
   if (snapshotGrand.hasChild("location")){
 
-    console.log('Both');
+   // console.log('Both');
           
-            bot.reply(message, "I'm sorry to hear that. It looks like you have a medical condition: " + snapshotGrand.child('condition').val() + ". If this is an emergency, please proceed to the nearest ER. They are required to stabalize you regardless of immigration status by federal law.");
+            bot.reply(message, "I'm sorry to hear that. It looks like you have a medical condition: " + snapshotGrand.child('condition').val() + ". If this is an emergency, please proceed to the nearest ER. They are required to stabalize you regardless of immigration status by federal law." + " You are located at: " + snapshotGrand.child('location').val() + ". Please wait while I search for the nearest clinic");
               
-            bot.reply(message, 'You are located at: ' + snapshotGrand.child('location').val() + '. Please wait while I search for the nearest clinic');
+            //bot.reply(message, 'You are located at: ' + snapshotGrand.child('location').val() + '. Please wait while I search for the nearest clinic');
             condition= true;  
             var userCondition = snapshotGrand.child('condition').val() ;
             var starCountRef = firebase.database().ref('clinics/');
+            var counter = 0;
+            var datas = [];
+            
             starCountRef.once('value', function(snapshot) {
-
+            var minDistance = 10000000000000000000;
+            var minName = "";
+            var minLocation = "";
+            var minPhone = "";
+            var minDuration = "";
+                                                  console.log(minDistance);
+            var numChild = snapshot.numChildren();
+              var counter = 0;
                      snapshot.forEach(function (snapshot2) {
-
-                                 console.log(snapshot2.child('conditions').val());
+                                    console.log(numChild);
+                                    console.log(counter);
+                               //  console.log(snapshot2.child('conditions').val());
                                   var conditions = snapshot2.child('conditions').val();
                                   var partsOfStr = conditions.split(',');
+                                             counter++;
                                   for (var i = 0; i < partsOfStr.length; i++) {
-                                    console.log(partsOfStr[i].replace(/\s/g,''));
-                                    console.log(userCondition);
+                                   // console.log(partsOfStr[i].replace(/\s/g,''));
+                                   // console.log(userCondition);
+                                  //  if(i == partsOfStr.length - 1){
+
+                                      //  }
                                     if(partsOfStr[i].toUpperCase().replace(/\s/g,'') === userCondition.toUpperCase()){
-                                        distance.get(
+                                        
+                                      var callback = function(err, data){
+                                        
+                                          if (err) return console.log(err);
+                                    //datas.push(data)
+                                    console.log(data.distanceValue);
+                                    if(data.distanceValue < minDistance){
+                                      
+                                             firebase.database().ref('users/' + message.user).update({
+    minName: snapshot2.child('name').val(),
+    minLocation: snapshot2.child('location').val(),
+    minPhone: snapshot2.child('phone').val(),
+    minDuration: data.duration
+    });
+           
+                                        console.log("New MIn" + snapshot2.child('name').val());
+                                        console.log("InnerCounter" + counter);
+                                            minDistance = data.distanceValue;
+                                             minName = snapshot2.child('name').val();
+                                             minLocation = snapshot2.child('location').val();
+                                             minPhone = snapshot2.child('phone').val();
+                                             minDuration = data.duration;
+                                        console.log("innerMin" + minDistance);
+                                         if(counter == numChild){
+                                            console.log("TESTS" + minDistance);
+
+                       // bot.reply(message, 'I have found a match! The closest clinic which supports your condition is ' + minName + ' located at ' + minLocation +'. It is ' + minDuration +  ' away. You can call them at: ' + minPhone + '. To clear your history, type clear, quit, or exit.');
+counter =0;
+                         
+                       }
+                                    }
+                                   console.log(data);
+                                        
+                                  
+                                        
+                                      }
+                                      
+                                      
+                                      distance.get(
                                   {
                                     origin: snapshotGrand.child('location').val() ,
                                     destination: snapshot2.child('location').val()
                                   },
-                                  function(err, data) {
-                                    if (err) return console.log(err);
-                                           bot.reply(message, 'I have found a match! The closest clinic which supports your condition is ' + snapshot2.child('name').val() + ' located at ' + snapshot2.child('location').val() + '. It is ' + data.duration +  ' away. You can call them at: ' + snapshot2.child('phone').val() + ' . To clear your history, type clear, quit, or exit.');
+                                  callback);
 
-                                    console.log(data);
-                                });
-
-                                      console.log('FOUND MATCH' + partsOfStr[i]);
+                                     // console.log('FOUND MATCH' + partsOfStr[i]);
                                     }
                                     //Do something
                                 }
+                          
+                       console.log("final MIN" + minDistance);
 
                                 });
+                  
+              
 
             });
             
-              console.log(location)
+            //  console.log(location)
         }else{
+                    if(snapshotGrand.hasChild('condition')){
+
             bot.reply(message, "I'm sorry to hear that. It looks like you have a serious medical condition: " + snapshotGrand.child('condition').val() + ". If this is an emergency, please proceed to the nearest ER. They are required to stabalize you regardless of immigration status by federal law. The ER is only required to Stabalize you, but we can direct you to a nearby low cost health clinic which will take care of you. Please respond with your location. ");
     console.log('no condition');
-
+                    }
         }
 
         }else{
+          
+          if(snapshotGrand.hasChild('location')){
             bot.reply(message, 'You are located at: ' + snapshotGrand.child('location').val() + '. Please provide your condition, so I can match you with a nearby low cost clinic which treats it.');
-    console.log('no location');
+    console.log('no location');}
 
         }
   
   
+}).then(function(){
+    var starCountRef = firebase.database().ref('users/' + message.user);
+
+            starCountRef.once('value', function(snapshot) {
+          
+              if(snapshot.hasChild('minName')){
+              bot.reply(message, 'I have found a match! The closest clinic which supports your condition is ' + snapshot.child('minName').val() + ' located at ' + snapshot.child('minLocation').val() +'. It is ' + snapshot.child('minDuration').val() +  ' away. You can call them at: ' + snapshot.child('minPhone').val() + '. To clear your history, type clear, quit, or exit.');
+              }
+              
+            });
+    console.log('promise called');
 });
      
      
-     
-     
+               
           
          /*     for (var key in message.intents[0].entities ) {
   console.log(key);
