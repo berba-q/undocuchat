@@ -7,7 +7,10 @@ var distance = require('google-distance');
 var firebase = require('firebase');
 var condition = false;
 var location = false;
+function function1() {
 
+  
+}
 module.exports = function(controller) {
     // define a before hook
     // you may define multiple before hooks. they will run in the order they are defined.
@@ -35,7 +38,20 @@ module.exports = function(controller) {
   });*/
    controller.hears(['.*'], 'message_received', function(bot, message) {
 
-       
+       function f1(){
+            var starCountRef = firebase.database().ref('users/' + message.user);
+
+            starCountRef.once('value', function(snapshot) {
+          
+              if(snapshot.hasChild('minName')){
+              bot.reply(message, 'I have found a match! The closest clinic which supports your condition is ' + snapshot.child('minName').val() + ' located at ' + snapshot.child('minLocation').val() +'. It is ' + snapshot.child('minDuration').val() +  ' away. You can call them at: ' + snapshot.child('minPhone').val() + '. To clear your history, type clear, quit, or exit.');
+              }
+              
+            });
+    console.log('promise called');
+         
+         
+       }
          
           
             for (var key in message) {
@@ -52,7 +68,7 @@ bot.reply(message,"Clearing your history.");
 ref.remove();   
             
           }else
-          if(input.indexOf("Help") > -1 || input.indexOf("help") > -1 || input.indexOf("hello") > -1 || input.indexOf("hi") > -1 || input.indexOf("Hi") > -1 || input.indexOf("Hello") > -1 || input.indexOf("Hola") > -1 || input.indexOf("hola") > -1) {
+          if(input.indexOf("Start") > -1 ||input.indexOf("start") > -1 ||input.indexOf("Help") > -1 || input.indexOf("help") > -1 || input.indexOf("hello") > -1 || input.indexOf("hi") > -1 || input.indexOf("Hi") > -1 || input.indexOf("Hello") > -1 || input.indexOf("Hola") > -1 || input.indexOf("hola") > -1) {
 bot.reply(message,"Hello! Please tell me where you are, and what your medical concern is. ¡Hola! Por favor, dime dónde estás, y cuál es tu preocupación médica.");
                     
 }else{
@@ -208,21 +224,13 @@ counter =0;
   
   
 }).then(function(){
-    var starCountRef = firebase.database().ref('users/' + message.user);
-
-            starCountRef.once('value', function(snapshot) {
-          
-              if(snapshot.hasChild('minName')){
-              bot.reply(message, 'I have found a match! The closest clinic which supports your condition is ' + snapshot.child('minName').val() + ' located at ' + snapshot.child('minLocation').val() +'. It is ' + snapshot.child('minDuration').val() +  ' away. You can call them at: ' + snapshot.child('minPhone').val() + '. To clear your history, type clear, quit, or exit.');
-              }
-              
-            });
-    console.log('promise called');
+  
 });
      
      
-               
-          
+           setTimeout(f1, 3000);
+    
+       
          /*     for (var key in message.intents[0].entities ) {
   console.log(key);
                 
