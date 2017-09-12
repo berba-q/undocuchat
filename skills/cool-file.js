@@ -45,6 +45,12 @@ module.exports = function(controller) {
           
               if(snapshot.hasChild('minName')){
               bot.reply(message, 'I have found a match! The closest clinic which supports your condition is ' + snapshot.child('minName').val() + ' located at ' + snapshot.child('minLocation').val() +'. It is ' + snapshot.child('minDuration').val() +  ' away. You can call them at: ' + snapshot.child('minPhone').val() + '. To clear your history, type clear, quit, or exit.');
+              }else{
+                
+                if(snapshot.hasChild('condition') && snapshot.hasChild('location')){
+                             bot.reply(message, 'Sorry, there is no clinic in the Database yet for ' + snapshot.child('condition').val() + '. We have been alerted to this, and we will work on adding a clinic for you soon! Check again in a few days. To clear your history, type clear, quit, or exit.');
+                }
+                
               }
               
             });
@@ -52,6 +58,16 @@ module.exports = function(controller) {
          
          
        }
+     
+     function addCondition(){
+       
+          condition= true;         
+                           //   console.log("ent:" + message.intents[0].entities.Conditions[0].value);
+              firebase.database().ref('users/' + message.user).update({
+    condition: message.intents[0].entities.Conditions[0].value
+    });
+       
+     }
          
           
             for (var key in message) {
@@ -76,12 +92,13 @@ bot.reply(message,"Hello! Please tell me where you are, and what your medical co
           
           for (var key in message.intents[0].entities) {
   //console.log(key);
+
             if(key == "Conditions" && message.intents[0].entities.Conditions[0].confidence > .7){
-                      condition= true;         
-                           //   console.log("ent:" + message.intents[0].entities.Conditions[0].value);
-              firebase.database().ref('users/' + message.user).update({
-    condition: message.intents[0].entities.Conditions[0].value
-    });
+               var ref = firebase.database().ref('users/' + message.user + '/minName')
+ref.remove();   
+                         setTimeout(addCondition, 10);
+
+                   
               
               
 
@@ -141,12 +158,12 @@ userRef.once('value', function(snapshotGrand) {
                                   var partsOfStr = conditions.split(',');
                                              counter++;
                                   for (var i = 0; i < partsOfStr.length; i++) {
-                                   // console.log(partsOfStr[i].replace(/\s/g,''));
-                                   // console.log(userCondition);
+                                   console.log(partsOfStr[i].replace(/\s/g,''));
+                                   console.log(userCondition);
                                   //  if(i == partsOfStr.length - 1){
 
                                       //  }
-                                    if(partsOfStr[i].toUpperCase().replace(/\s/g,'') === userCondition.toUpperCase()){
+                                    if(partsOfStr[i].toUpperCase().replace(/\s/g,'') === userCondition.toUpperCase().replace(/\s/g,'')){
                                         
                                       var callback = function(err, data){
                                         
@@ -228,7 +245,7 @@ counter =0;
 });
      
      
-           setTimeout(f1, 3000);
+           setTimeout(f1, 5000);
     
        
          /*     for (var key in message.intents[0].entities ) {
